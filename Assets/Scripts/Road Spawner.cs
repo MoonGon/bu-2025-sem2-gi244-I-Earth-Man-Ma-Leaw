@@ -68,22 +68,18 @@ public class RoadSpawner : MonoBehaviour
     {
         int currentDifficultyCount = Mathf.Min(obstaclesPerTile + Mathf.FloorToInt(zPos / 500 * difficultyMultiplier), maxObstaclesPerTile);
 
+        float[] lanes = { -2.9f, 0f, 2.9f };
+        List<float> occupiedLanes = new List<float>();
+
         for (int i = 0; i < currentDifficultyCount; i++)
         {
             if (Random.value > 0.3f)
             {
-                float[] lanes = { -2.9f, 0f, 2.9f };
                 float randomX = lanes[Random.Range(0, lanes.Length)];
                 float randomZ = Random.Range(zPos, zPos + roadLength);
                 Vector3 spawnPos = new Vector3(randomX, 0.2f, randomZ);
 
                 GameObject selectedPrefab = null;
-
-                if (Random.value < 0.1f)
-                {
-                    GameObject selectedPowerUp = powerUpPrefabs[Random.Range(0, powerUpPrefabs.Length)];
-                    Instantiate(selectedPowerUp, spawnPos, Quaternion.identity, parent);
-                }
 
                 if (Random.value > 0.3f)
                 {
@@ -100,7 +96,35 @@ public class RoadSpawner : MonoBehaviour
                 {
                     GameObject obs = Instantiate(selectedPrefab, spawnPos, selectedPrefab.transform.rotation);
                     obs.transform.SetParent(parent);
+
+                    if (!occupiedLanes.Contains(randomX)) occupiedLanes.Add(randomX);
                 }
+            }
+        }
+
+        if (Random.value < 0.1f && powerUpPrefabs.Length > 0)
+        {
+            List<float> freeLanes = new List<float>();
+            foreach (float l in lanes)
+            {
+                if (!occupiedLanes.Contains(l)) freeLanes.Add(l);
+            }
+
+            if (freeLanes.Count > 0)
+            {
+                float safeX = freeLanes[Random.Range(0, freeLanes.Count)];
+                float randomZ = Random.Range(zPos, zPos + roadLength);
+                Vector3 spawnPos = new Vector3(safeX, 0.2f, randomZ);
+
+                GameObject selectedPowerUp = powerUpPrefabs[Random.Range(0, powerUpPrefabs.Length)];
+
+                GameObject pUp = Instantiate(selectedPowerUp, spawnPos, Quaternion.identity);
+
+                pUp.transform.SetParent(parent, false);
+
+                pUp.transform.localScale = selectedPowerUp.transform.localScale;
+
+                pUp.transform.position = spawnPos;
             }
         }
     }

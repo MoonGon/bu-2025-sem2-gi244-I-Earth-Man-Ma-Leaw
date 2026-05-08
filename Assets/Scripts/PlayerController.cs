@@ -44,6 +44,9 @@ public class PlayerController : MonoBehaviour
     private Color originalColor;
     public MeshRenderer carRenderer;
 
+    [Header("VFX Settings")]
+    public GameObject collisionEffectPrefab;
+
     public int currentScore = 0;
 
     private bool isGameFinished = false;
@@ -179,6 +182,19 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (isInvincible) return;
+
+        CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
+        if (cam != null)
+        {
+            cam.TriggerShake(0.2f, 0.3f);
+        }
+
+        if (collisionEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(collisionEffectPrefab, transform.position + (transform.forward * 2f) + Vector3.up, transform.rotation);
+
+            Destroy(effect, 2f);
+        }
 
         currentHp -= damage;
         if (currentHp <= 0) GameOver();
